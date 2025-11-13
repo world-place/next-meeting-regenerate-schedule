@@ -28,17 +28,54 @@ app = "your-unique-app-name"
 
 You'll need to set these secrets in Fly.io (these are NOT stored in fly.toml for security):
 
+#### Required Secrets
+
 ```bash
+# Google Sheets API (REQUIRED)
 fly secrets set GOOGLE_API_CLIENT_EMAIL="your-email@project.iam.gserviceaccount.com"
 fly secrets set GOOGLE_API_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+
+# Storage Backend (REQUIRED - choose one)
+fly secrets set STORAGE_BACKEND="aws-s3"  # or cloudflare-r2, fly-volumes, local
+```
+
+**Storage Backend Configuration** - See [STORAGE_OPTIONS.md](./STORAGE_OPTIONS.md) for details
+
+**For AWS S3:**
+```bash
 fly secrets set AWS_ACCESS_KEY_ID="your-aws-key"
 fly secrets set AWS_SECRET_ACCESS_KEY="your-aws-secret"
-fly secrets set CLOUDFRONT_DISTRIBUTION_ID="your-distribution-id"
 fly secrets set AWS_S3_BUCKET="your-s3-bucket"
 fly secrets set AWS_S3_REGION="us-east-1"
-fly secrets set SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 fly secrets set STATIC_SITE_S3_BUCKET="your-static-site-bucket"
 fly secrets set S3_BUCKET_NAME="your-s3-bucket"
+```
+
+**For Cloudflare R2:**
+```bash
+fly secrets set R2_ACCOUNT_ID="your-account-id"
+fly secrets set R2_ACCESS_KEY_ID="your-r2-key"
+fly secrets set R2_SECRET_ACCESS_KEY="your-r2-secret"
+fly secrets set R2_BUCKET_NAME="your-bucket"
+fly secrets set R2_PUBLIC_DOMAIN="your-domain.com"  # Optional
+```
+
+**For Fly Volumes:**
+```bash
+fly secrets set FLY_VOLUME_PATH="/data"
+# See "Using Fly Volumes" section below
+```
+
+#### Optional Secrets
+
+```bash
+# Slack notifications (optional)
+fly secrets set SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+# CloudFront CDN invalidation (optional, AWS only)
+fly secrets set CLOUDFRONT_DISTRIBUTION_ID="your-distribution-id"
+
+# Honeybadger error tracking (optional)
 fly secrets set HONEYBADGER_API_KEY="your-honeybadger-key"
 fly secrets set HONEYBADGER_CHECK_IN_TOKEN="your-checkin-token"
 ```
@@ -46,6 +83,31 @@ fly secrets set HONEYBADGER_CHECK_IN_TOKEN="your-checkin-token"
 **Note**: For `GOOGLE_API_PRIVATE_KEY`, you may need to escape newlines:
 ```bash
 fly secrets set GOOGLE_API_PRIVATE_KEY="$(cat google-key.json | jq -r '.private_key')"
+```
+
+### 3. Using Fly Volumes (Optional)
+
+If you choose `STORAGE_BACKEND=fly-volumes`, you need to create and mount a volume:
+
+```bash
+# Create a volume (10GB example)
+fly volumes create nextmeeting_data --size 10 --region iad
+
+# Update fly.toml to mount the volume
+# Add this section:
+```
+
+Add to your `fly.toml`:
+```toml
+[[mounts]]
+source = "nextmeeting_data"
+destination = "/data"
+```
+
+Then set the secrets:
+```bash
+fly secrets set STORAGE_BACKEND=fly-volumes
+fly secrets set FLY_VOLUME_PATH=/data
 ```
 
 ## Deployment

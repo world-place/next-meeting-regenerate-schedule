@@ -4,6 +4,14 @@
 
 > ⚠️ **Migration Notice**: This has been converted from an AWS Lambda function to a Node.js cron job server for deployment on Fly.io or any Node.js hosting platform.
 
+## ✨ Features
+
+- 🔄 **Flexible Storage** - Supports AWS S3, Cloudflare R2, Fly.io Volumes, or local filesystem
+- 🛡️ **Optional Services** - Honeybadger, Slack, and CloudFront are optional (gracefully skipped if not configured)
+- ⏰ **Configurable Cron** - Set your own schedule
+- 🚀 **Easy Development** - Minimal configuration required for local testing
+- 💰 **Cost Optimized** - Choose storage backend based on your budget
+
 ## Quick Start
 
 ### Local Development
@@ -34,9 +42,24 @@ See [regenerate-schedule/FLY_DEPLOYMENT.md](./regenerate-schedule/FLY_DEPLOYMENT
 ```bash
 cd regenerate-schedule
 fly launch --no-deploy
-# Set your secrets (see FLY_DEPLOYMENT.md)
+
+# Set required secrets
+fly secrets set GOOGLE_API_CLIENT_EMAIL="..."
+fly secrets set GOOGLE_API_PRIVATE_KEY="..."
+fly secrets set STORAGE_BACKEND="aws-s3"  # or cloudflare-r2, fly-volumes, local
+# ... set storage-specific credentials (see FLY_DEPLOYMENT.md)
+
+# Deploy
 fly deploy
 ```
+
+## 📚 Documentation
+
+- **[IMPROVEMENTS_SUMMARY.md](./IMPROVEMENTS_SUMMARY.md)** - Latest features and improvements
+- **[STORAGE_OPTIONS.md](./regenerate-schedule/STORAGE_OPTIONS.md)** - Storage backend comparison and setup
+- **[FLY_DEPLOYMENT.md](./regenerate-schedule/FLY_DEPLOYMENT.md)** - Complete deployment guide
+- **[QUICKSTART.md](./regenerate-schedule/QUICKSTART.md)** - Quick start for developers
+- **[MIGRATION.md](./regenerate-schedule/MIGRATION.md)** - Lambda to Fly.io migration details
 
 ### Legacy Lambda Deployment (Deprecated)
 

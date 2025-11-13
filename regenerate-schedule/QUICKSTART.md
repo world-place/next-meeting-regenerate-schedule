@@ -19,6 +19,15 @@ cp .env.example ../.env
 
 Edit `../.env` (in project root) with your actual credentials.
 
+**Required:**
+- Google Sheets API credentials
+- Storage backend configuration (see [STORAGE_OPTIONS.md](./STORAGE_OPTIONS.md))
+
+**Optional:**
+- Slack webhook (for notifications)
+- Honeybadger API key (for error tracking)
+- CloudFront distribution ID (for CDN invalidation)
+
 ### 3. Run the Server
 
 ```bash

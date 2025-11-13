@@ -20,23 +20,63 @@ const {
 const { rebuildAndDeploySite } = require('./rebuildAndDeploySite.js');
 const { invalidateCdn } = require("./invalidateCdn.js");
 
-// Initialize Honeybadger
-Honeybadger.configure({
-  apiKey: process.env.HONEYBADGER_API_KEY
-});
+// Initialize Honeybadger (optional)
+const HONEYBADGER_ENABLED = !!process.env.HONEYBADGER_API_KEY;
+if (HONEYBADGER_ENABLED) {
+  console.log('✅ Honeybadger error tracking enabled');
+  Honeybadger.configure({
+    apiKey: process.env.HONEYBADGER_API_KEY
+  });
+} else {
+  console.log('⚠️  Honeybadger disabled (no API key provided)');
+}
 
-// Validate required environment variables
+// Check optional services
+const SLACK_ENABLED = !!process.env.SLACK_WEBHOOK_URL;
+const CLOUDFRONT_ENABLED = !!process.env.CLOUDFRONT_DISTRIBUTION_ID;
+
+if (SLACK_ENABLED) {
+  console.log('✅ Slack notifications enabled');
+} else {
+  console.log('⚠️  Slack notifications disabled (no webhook URL provided)');
+}
+
+if (CLOUDFRONT_ENABLED) {
+  console.log('✅ CloudFront CDN invalidation enabled');
+} else {
+  console.log('⚠️  CloudFront CDN invalidation disabled (no distribution ID provided)');
+}
+
+// Validate REQUIRED environment variables only
 validateEnvVars([
   "GOOGLE_API_CLIENT_EMAIL",
-  "GOOGLE_API_PRIVATE_KEY",
-  "AWS_ACCESS_KEY_ID",
-  "AWS_SECRET_ACCESS_KEY",
-  "CLOUDFRONT_DISTRIBUTION_ID",
-  "AWS_S3_BUCKET",
-  "AWS_S3_REGION",
-  "SLACK_WEBHOOK_URL",
-  "STATIC_SITE_S3_BUCKET"
+  "GOOGLE_API_PRIVATE_KEY"
 ]);
+
+// Validate storage backend is configured
+const STORAGE_BACKEND = process.env.STORAGE_BACKEND || 'aws-s3';
+console.log(`📦 Storage backend: ${STORAGE_BACKEND}`);
+
+if (STORAGE_BACKEND === 'aws-s3') {
+  validateEnvVars([
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_S3_BUCKET",
+    "AWS_S3_REGION",
+    "STATIC_SITE_S3_BUCKET"
+  ]);
+} else if (STORAGE_BACKEND === 'cloudflare-r2') {
+  validateEnvVars([
+    "R2_ACCOUNT_ID",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "R2_BUCKET_NAME"
+  ]);
+} else if (STORAGE_BACKEND === 'fly-volumes') {
+  validateEnvVars(["FLY_VOLUME_PATH"]);
+} else if (STORAGE_BACKEND === 'local') {
+  console.log('⚠️  Using local filesystem storage (not recommended for production)');
+}
 
 // Meeting configurations
 const configs = [ 
@@ -84,20 +124,42 @@ async function runScheduleRegenerationJob() {
         console.error(`❗ Caught error in deploy for ${config.name}!`);
         console.error(error);
         errors.push(error);
-        await Honeybadger.notifyAsync(error);
+        if (HONEYBADGER_ENABLED) {
+          await Honeybadger.notifyAsync(error).catch(e => 
+            console.error('Failed to notify Honeybadger:', e)
+          );
+        }
       }
     });
 
-    // Invalidate CloudFront CDN
-    await invalidateCdn({
-      files: ["/*"],
-      awsCredentials: {}
-    });
+    // Invalidate CloudFront CDN (if enabled)
+    if (CLOUDFRONT_ENABLED) {
+      try {
+        await invalidateCdn({
+          files: ["/*"],
+          awsCredentials: {}
+        });
+      } catch (error) {
+        console.error('⚠️  CloudFront invalidation failed:', error);
+        // Don't fail the entire job for CDN issues
+      }
+    } else {
+      console.log('⏭️  Skipping CloudFront invalidation (not configured)');
+    }
 
     console.log(`✅ Schedule regeneration completed successfully!`);
     
-    await sendSlackNotification("✅ NextMeeting schedules regenerated");
-    await sendHoneybadgerCheckIn();
+    if (SLACK_ENABLED) {
+      await sendSlackNotification("✅ NextMeeting schedules regenerated").catch(e =>
+        console.error('Failed to send Slack notification:', e)
+      );
+    }
+    
+    if (HONEYBADGER_ENABLED && process.env.HONEYBADGER_CHECK_IN_TOKEN) {
+      await sendHoneybadgerCheckIn().catch(e =>
+        console.error('Failed to send Honeybadger check-in:', e)
+      );
+    }
     
     if (errors.length > 0) {
       console.log(`⚠️  Completed with ${errors.length} error(s)`);
@@ -107,8 +169,19 @@ async function runScheduleRegenerationJob() {
     return { success: true };
   } catch (err) {
     console.error(`❗️ Fatal error! ${err} ${JSON.stringify(err)}`);
-    await Honeybadger.notifyAsync(err);
-    await sendSlackNotification(`❗️ Error! ${err} ${JSON.stringify(err)}`);
+    
+    if (HONEYBADGER_ENABLED) {
+      await Honeybadger.notifyAsync(err).catch(e =>
+        console.error('Failed to notify Honeybadger:', e)
+      );
+    }
+    
+    if (SLACK_ENABLED) {
+      await sendSlackNotification(`❗️ Error! ${err} ${JSON.stringify(err)}`).catch(e =>
+        console.error('Failed to send Slack notification:', e)
+      );
+    }
+    
     throw err;
   }
 }

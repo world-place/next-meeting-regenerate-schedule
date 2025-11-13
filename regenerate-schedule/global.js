@@ -46,14 +46,27 @@ async function asyncMap(array, callback) {
 async function sendSlackNotification(text) {
   if(process.env.IS_TEST_MODE) return;
   const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
-  if(!SLACK_WEBHOOK_URL) return;  
-  const logDeeplink = getCloudWatchLogDeeplink();
-  const slackLink = logDeeplink ? ` <${logDeeplink}| Logs ›>` : `(\`<dev>\`)`
-  await fetch(SLACK_WEBHOOK_URL, {
-    method: 'post',
-    headers: {'content-type': 'application/json'},
-    body: JSON.stringify({"text": text + slackLink})
-  }) 
+  if(!SLACK_WEBHOOK_URL) {
+    console.log('[Slack] Skipped (no webhook URL configured)');
+    return;
+  }
+  
+  try {
+    const logDeeplink = getCloudWatchLogDeeplink();
+    const slackLink = logDeeplink ? ` <${logDeeplink}| Logs ›>` : `(\`<dev>\`)`;
+    const response = await fetch(SLACK_WEBHOOK_URL, {
+      method: 'post',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({"text": text + slackLink})
+    });
+    
+    if (!response.ok) {
+      console.error(`[Slack] Failed to send notification: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('[Slack] Error sending notification:', error.message);
+    // Don't throw - Slack failures shouldn't break the main job
+  }
 }
 
 async function sendErrorNotification({text, args = "", id = ""}) {
@@ -147,10 +160,21 @@ async function uploadJsonFile({bucket, folderName = "", fileName, fileContents})
 async function sendHoneybadgerCheckIn() {
   const HONEYBADGER_CHECK_IN_TOKEN = process.env.HONEYBADGER_CHECK_IN_TOKEN;
   if(!HONEYBADGER_CHECK_IN_TOKEN) {
-    console.error(`Env var HONEYBADGER_CHECK_IN_TOKEN is missing.\nSkipping check-in.`)
+    console.log('[Honeybadger] Check-in skipped (no token configured)');
+    return;
   }
-  const url = `https://api.honeybadger.io/v1/check_in/${HONEYBADGER_CHECK_IN_TOKEN}`;
-  await fetch(url, { method: 'get' });
+  
+  try {
+    const url = `https://api.honeybadger.io/v1/check_in/${HONEYBADGER_CHECK_IN_TOKEN}`;
+    const response = await fetch(url, { method: 'get' });
+    
+    if (!response.ok) {
+      console.error(`[Honeybadger] Check-in failed: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('[Honeybadger] Error during check-in:', error.message);
+    // Don't throw - Honeybadger failures shouldn't break the main job
+  }
 }
 
 exports.log = log;
