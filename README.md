@@ -55,11 +55,28 @@ fly deploy
 
 ## 📚 Documentation
 
+### Main Guides
+- **[Documentation Index](./regenerate-schedule/docs/README.md)** - Complete documentation hub
 - **[IMPROVEMENTS_SUMMARY.md](./IMPROVEMENTS_SUMMARY.md)** - Latest features and improvements
-- **[STORAGE_OPTIONS.md](./regenerate-schedule/STORAGE_OPTIONS.md)** - Storage backend comparison and setup
-- **[FLY_DEPLOYMENT.md](./regenerate-schedule/FLY_DEPLOYMENT.md)** - Complete deployment guide
 - **[QUICKSTART.md](./regenerate-schedule/QUICKSTART.md)** - Quick start for developers
+- **[FLY_DEPLOYMENT.md](./regenerate-schedule/FLY_DEPLOYMENT.md)** - Complete deployment guide
 - **[MIGRATION.md](./regenerate-schedule/MIGRATION.md)** - Lambda to Fly.io migration details
+
+### Storage Options
+- **[Storage Overview](./regenerate-schedule/STORAGE_OPTIONS.md)** - Compare all storage backends
+- **[AWS S3 Setup](./regenerate-schedule/docs/storage/aws-s3-setup.md)** - Detailed S3 configuration
+- **[Cloudflare R2 Setup](./regenerate-schedule/docs/storage/cloudflare-r2-setup.md)** - R2 with zero egress fees ⭐
+- **[Fly Volumes Setup](./regenerate-schedule/docs/storage/fly-volumes-setup.md)** - Self-contained storage
+- **[Local Storage Setup](./regenerate-schedule/docs/storage/local-setup.md)** - Development setup
+
+### Optional Features
+- **[CloudFront CDN](./regenerate-schedule/docs/optional/cloudfront-setup.md)** - CDN caching setup
+- **[Slack Notifications](./regenerate-schedule/docs/optional/slack-setup.md)** - Team notifications
+- **[Honeybadger Monitoring](./regenerate-schedule/docs/optional/honeybadger-setup.md)** - Error tracking
+
+### Data Sources
+- **[Data Sources Guide](./regenerate-schedule/docs/DATA_SOURCES.md)** - Complete guide for meeting sources
+  - Google Sheets, REST API, Database, JSON Files, Airtable, Custom adapters
 
 ### Legacy Lambda Deployment (Deprecated)
 
