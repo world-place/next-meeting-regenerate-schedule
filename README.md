@@ -1,30 +1,46 @@
 # next-meeting-regenerate-index
 
-Lambda function to generate schedule JSON files for NextMeeting project.
+**Cron job server** to generate schedule JSON files for NextMeeting project.
 
-## Usage
+> ⚠️ **Migration Notice**: This has been converted from an AWS Lambda function to a Node.js cron job server for deployment on Fly.io or any Node.js hosting platform.
 
-### Dev
+## Quick Start
+
+### Local Development
 
 1. Clone repo
-2. Populate `.env` in the project root (See `.env.example`) and _Creating AWS Resources_ below.
+2. Copy `.env.example` to `.env` in the project root and fill in your credentials
 3. Run:
 
 ```bash
 cd regenerate-schedule
-npm i # Only required first time
-node app.js
+npm install
+npm start
 ```
 
-> The function will run in the standard Node.js environment, bypassing the need for slow and clunky Lambda emulation tools (SA, Docker, etc.).
+The server will start on http://localhost:8080
 
-> Environment variables will be picked up from `.env` in project root. The function will explicitly fail if required variables are missing.
+**Endpoints:**
+- `GET /health` - Health check
+- `GET /` - Service info
+- `POST /trigger` - Manually trigger a job run
 
-> In development, the generated files will be stored locally on disk as well for inspection
+### Deploy to Fly.io
 
-### Deploy
+See [regenerate-schedule/FLY_DEPLOYMENT.md](./regenerate-schedule/FLY_DEPLOYMENT.md) for complete deployment guide.
 
-1. Run `regenerate-schedule/deploy.sh`
+**Quick deploy:**
+
+```bash
+cd regenerate-schedule
+fly launch --no-deploy
+# Set your secrets (see FLY_DEPLOYMENT.md)
+fly deploy
+```
+
+### Legacy Lambda Deployment (Deprecated)
+
+The old Lambda deployment method (`deploy.sh`) is deprecated. Use Fly.io deployment instead.
 
 ## Roadmap
 

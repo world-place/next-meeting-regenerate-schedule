@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+.git
+.gitignore
+*.md
+tests
+debug
+function.zip
+deploy.sh
+npmDuo.sh
+sim-2021.json
