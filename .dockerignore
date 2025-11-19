@@ -1,0 +1,14 @@
+.git
+.gitignore
+.env
+**/.env
+node_modules
+**/node_modules
+npm-debug.log
+*.log
+debug/
+function.zip
+tests/
+regenerate-schedule/tests/
+regenerate-schedule/debug/
+regenerate-schedule/scripts/

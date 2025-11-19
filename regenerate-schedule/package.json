@@ -8,6 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "@honeybadger-io/js": "^4.0.3",
+    "aws-sdk": "^2.771.0",
     "extract-email-address": "^1.4.0",
     "google-spreadsheet": "^3.0.13",
     "isomorphic-fetch": "^3.0.0",
@@ -15,10 +16,10 @@
   },
   "scripts": {
     "test": "mocha tests/unit/",
-    "run": "node ./scripts/run.js"
+    "run": "node ./scripts/run.js",
+    "start": "node ./fly-entry.js"
   },
   "devDependencies": {
-    "aws-sdk": "^2.771.0",
     "chai": "^4.2.0",
     "mocha": "^6.1.4"
   }

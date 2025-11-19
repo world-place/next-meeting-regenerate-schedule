@@ -26,6 +26,48 @@ node app.js
 
 1. Run `regenerate-schedule/deploy.sh`
 
+## Fly.io deployment
+
+The repository now contains a Dockerfile, Fly entrypoint, and `fly.toml` so the worker can run on the Fly.io free tier (`shared-cpu-1x`, 256 MB) in Frankfurt (FRA). The worker container wraps the existing Lambda handler and re-runs it every hour by default.
+
+### Prerequisites
+- Install the Fly CLI (`https://fly.io/docs/hands-on/install-flyctl/`) and log in: `fly auth login`.
+- Pick a unique Fly app name. Update the `app` value in `fly.toml` if Fly reports a naming collision.
+
+### Required secrets
+Set the environment variables that were previously kept in `.env` via Fly secrets. Run the following from the repo root (replace placeholder values):
+
+```bash
+fly secrets set \
+  GOOGLE_API_CLIENT_EMAIL=... \
+  GOOGLE_API_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n" \
+  AWS_ACCESS_KEY_ID=... \
+  AWS_SECRET_ACCESS_KEY=... \
+  CLOUDFRONT_DISTRIBUTION_ID=... \
+  AWS_S3_BUCKET=... \
+  AWS_S3_REGION=... \
+  SLACK_WEBHOOK_URL=... \
+  STATIC_SITE_S3_BUCKET=... \
+  HONEYBADGER_API_KEY=... \
+  HONEYBADGER_CHECK_IN_TOKEN=... \
+  ERROR_WEBHOOK_URL=...
+```
+
+Optional knobs:
+
+- `RUN_INTERVAL_MINUTES` (defaults to `60`) controls how frequently the job re-runs inside the Fly machine.
+- `SUPPRESS_ERROR_NOTIFICATIONS=true` disables the secondary error webhook.
+
+### One-command deploy
+
+Once the secrets are in place you can deploy the worker with a single command:
+
+```bash
+fly deploy --remote-only
+```
+
+The `fly-entry.js` loop keeps the machine running and re-triggers the schedule regeneration job every `RUN_INTERVAL_MINUTES`. Because no ports are exposed there is nothing to scale down manually; Fly will keep exactly one free-tier machine (`shared-cpu-1x` in `fra`) online.
+
 ## Roadmap
 
 ### Dev
