@@ -12,6 +12,7 @@ The NextMeeting Schedule Generator uses an **adapter pattern** for data sources,
 - ✅ Database (PostgreSQL/MySQL)
 - ✅ JSON File (for testing/development)
 - ✅ Airtable (example implementation)
+- ✅ Jotform (API integration)
 
 ---
 
@@ -286,6 +287,74 @@ AIRTABLE_TABLE_NAME=Meetings  # Optional, defaults to "Meetings"
 | Contact Info | Email or text | Contact information |
 | Notes | Long text | Additional notes |
 | Duration (minutes) | Number | Meeting length |
+
+---
+
+### 6. Jotform
+
+**Configuration:**
+
+```bash
+MEETING_SOURCE=jotform
+JOTFORM_API_KEY=your-readonly-api-key
+JOTFORM_FORM_IDS=123456789012345,987654321098765   # Comma-separated list
+
+# Optional
+JOTFORM_BASE_URL=https://api.jotform.com        # Override for EU/Enterprise
+JOTFORM_PAGE_SIZE=200                          # Pagination size (default 200)
+JOTFORM_RATE_LIMIT_PER_DAY=1000                # Informational logging only
+
+# Mapping helpers
+JOTFORM_FIELD_MAP='{"dayOfWeek":["Day of Week"],"startTime":["Start Time"]}'
+JOTFORM_TRANSFORMER_PATH=./path/to/customTransformer.js
+```
+
+**Source ID:** Optional override for `JOTFORM_FORM_IDS`. Pass a comma-separated list (or array) of form IDs when calling `generateSchedule` to target specific forms per deployment.
+
+**What it does:**
+
+1. Calls Jotform's REST API (`/form/{id}/submissions`) with pagination until all submissions are collected for each configured form.
+2. Logs rate-limit information (if provided) so you can tune scheduling based on your plan.
+3. Passes each submission through a transformer that maps Jotform answers → raw meeting objects consumed by `formatMeeting.js`.
+
+**Transformers & Field Mapping:**
+
+- The default transformer ships with sensible aliases (e.g., "Day of Week", "dayOfWeek", "Meeting Time") and looks for matching question labels, names, or IDs.
+- Override or extend the mapping by supplying a JSON string via `JOTFORM_FIELD_MAP`.
+  ```bash
+  JOTFORM_FIELD_MAP='{
+    "meetingName": ["Meeting Title", "Group Name"],
+    "joinUrl": ["Zoom Link"]
+  }'
+  ```
+- For full control, point `JOTFORM_TRANSFORMER_PATH` at a module that exports either a function or `{ transformSubmission }`. The function receives `(submission, context)` and must return either a single raw meeting, an array of meetings, or `null` to skip.
+
+```javascript
+// customTransformer.js
+module.exports = (submission, context) => {
+  const answers = submission.answers || {};
+  const name = answers['3']?.answer;
+  if (!name) return null;
+
+  return {
+    dayOfWeek: answers['1']?.answer,
+    startTime: answers['2']?.answer,
+    meetingName: name,
+    joinUrl: answers['4']?.answer,
+    contactInfo: submission.sender_email,
+    notes: `Source form: ${context.formId}`,
+    durationMinutes: 90,
+  };
+};
+```
+
+**Testing the connection:**
+
+```bash
+node -e "require('./meetingSources/meetingSourceAdapter').testConnection().then(console.log)"
+```
+
+The adapter will either fetch the first configured form or fall back to listing forms via `/user/forms` if none are provided yet.
 
 ---
 
