@@ -1,30 +1,86 @@
 # next-meeting-regenerate-index
 
-Lambda function to generate schedule JSON files for NextMeeting project.
+**Cron job server** to generate schedule JSON files for NextMeeting project.
 
-## Usage
+> ⚠️ **Migration Notice**: This has been converted from an AWS Lambda function to a Node.js cron job server for deployment on Fly.io or any Node.js hosting platform.
 
-### Dev
+## ✨ Features
+
+- 🔄 **Flexible Storage** - Supports AWS S3, Cloudflare R2, Fly.io Volumes, or local filesystem
+- 🛡️ **Optional Services** - Honeybadger, Slack, and CloudFront are optional (gracefully skipped if not configured)
+- ⏰ **Configurable Cron** - Set your own schedule
+- 🚀 **Easy Development** - Minimal configuration required for local testing
+- 💰 **Cost Optimized** - Choose storage backend based on your budget
+
+## Quick Start
+
+### Local Development
 
 1. Clone repo
-2. Populate `.env` in the project root (See `.env.example`) and _Creating AWS Resources_ below.
+2. Copy `.env.example` to `.env` in the project root and fill in your credentials
 3. Run:
 
 ```bash
 cd regenerate-schedule
-npm i # Only required first time
-node app.js
+npm install
+npm start
 ```
 
-> The function will run in the standard Node.js environment, bypassing the need for slow and clunky Lambda emulation tools (SA, Docker, etc.).
+The server will start on http://localhost:8080
 
-> Environment variables will be picked up from `.env` in project root. The function will explicitly fail if required variables are missing.
+**Endpoints:**
+- `GET /health` - Health check
+- `GET /` - Service info
+- `POST /trigger` - Manually trigger a job run
 
-> In development, the generated files will be stored locally on disk as well for inspection
+### Deploy to Fly.io
 
-### Deploy
+See [regenerate-schedule/FLY_DEPLOYMENT.md](./regenerate-schedule/FLY_DEPLOYMENT.md) for complete deployment guide.
 
-1. Run `regenerate-schedule/deploy.sh`
+**Quick deploy:**
+
+```bash
+cd regenerate-schedule
+fly launch --no-deploy
+
+# Set required secrets
+fly secrets set GOOGLE_API_CLIENT_EMAIL="..."
+fly secrets set GOOGLE_API_PRIVATE_KEY="..."
+fly secrets set STORAGE_BACKEND="aws-s3"  # or cloudflare-r2, fly-volumes, local
+# ... set storage-specific credentials (see FLY_DEPLOYMENT.md)
+
+# Deploy
+fly deploy
+```
+
+## 📚 Documentation
+
+### Main Guides
+- **[Documentation Index](./regenerate-schedule/docs/README.md)** - Complete documentation hub
+- **[IMPROVEMENTS_SUMMARY.md](./IMPROVEMENTS_SUMMARY.md)** - Latest features and improvements
+- **[QUICKSTART.md](./regenerate-schedule/QUICKSTART.md)** - Quick start for developers
+- **[FLY_DEPLOYMENT.md](./regenerate-schedule/FLY_DEPLOYMENT.md)** - Complete deployment guide
+- **[MIGRATION.md](./regenerate-schedule/MIGRATION.md)** - Lambda to Fly.io migration details
+
+### Storage Options
+- **[Storage Overview](./regenerate-schedule/STORAGE_OPTIONS.md)** - Compare all storage backends
+- **[AWS S3 Setup](./regenerate-schedule/docs/storage/aws-s3-setup.md)** - Detailed S3 configuration
+- **[Cloudflare R2 Setup](./regenerate-schedule/docs/storage/cloudflare-r2-setup.md)** - R2 with zero egress fees ⭐
+- **[Fly Volumes Setup](./regenerate-schedule/docs/storage/fly-volumes-setup.md)** - Self-contained storage
+- **[Local Storage Setup](./regenerate-schedule/docs/storage/local-setup.md)** - Development setup
+
+### Optional Features
+- **[CloudFront CDN](./regenerate-schedule/docs/optional/cloudfront-setup.md)** - CDN caching setup
+- **[Slack Notifications](./regenerate-schedule/docs/optional/slack-setup.md)** - Team notifications
+- **[Honeybadger Monitoring](./regenerate-schedule/docs/optional/honeybadger-setup.md)** - Error tracking
+
+### Data Sources
+- **[Data Sources Guide](./regenerate-schedule/docs/DATA_SOURCES.md)** - Complete guide for meeting sources
+  - Google Sheets, REST API, Database, JSON Files, Airtable, Custom adapters
+
+### Legacy Lambda Deployment (Deprecated)
+
+The old Lambda deployment method (`deploy.sh`) is deprecated. Use Fly.io deployment instead.
 
 ## Roadmap
 

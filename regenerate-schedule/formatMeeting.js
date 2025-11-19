@@ -232,3 +232,71 @@ const containsNumbers = str => MATCHES_DIGITS_REGEX.test(str);
 
 
 exports.retrieveFormattedMeetingFromSheet = retrieveFormattedMeetingFromSheet;
+
+// New adapter-compatible formatter
+function formatRawMeeting(rawMeeting) {
+	if (!rawMeeting) return null;
+	
+	const {
+		dayOfWeek,
+		startTime,
+		meetingName,
+		meetingId,
+		password,
+		joinUrl,
+		contactInfo,
+		notes = '',
+		durationMinutes = 60
+	} = rawMeeting;
+	
+	// Skip if no essential data
+	if (!startTime) {
+		return null;
+	}
+	
+	const timezone = 'America/New_York';
+	
+	try {
+		const platform = determinePlatform({ meetingId, meetingPassword: password, joinUrl });
+		const feedbackEmail = require('extract-email-address').default(contactInfo || '')?.[0];
+		
+		let gender = 'ALL';
+		if (/women|woman|female/ig.test(meetingName)) {
+			gender = 'WOMEN_ONLY';
+		} else if (/men|man|male/ig.test(meetingName)) {
+			gender = 'MEN_ONLY';
+		}
+		
+		return {
+			name: meetingName || '<Untitled Meeting>',
+			nextOccurrence: getNextOccurance({ dayOfWeekEST: dayOfWeek, startTimeEST: startTime, timezone }),
+			connectionDetails: {
+				platform,
+				mustContactForConnectionInfo: !joinUrl,
+				meetingId,
+				password,
+				joinUrl
+			},
+			contactInfo,
+			feedbackEmail: feedbackEmail?.email,
+			notes,
+			participantCount: '',
+			durationMinutes: durationMinutes || 60,
+			metadata: {
+				hostLocation: '',
+				localTimezoneOffset: undefined,
+				language: 'en',
+				restrictions: {
+					openMeeting: /\s+open\s+|^open\s/ig.test(meetingName),
+					gender,
+				}
+			}
+		};
+	} catch (error) {
+		console.error('❗ Error formatting meeting:', error);
+		return null;
+	}
+}
+
+exports.formatRawMeeting = formatRawMeeting;
+
