@@ -38,6 +38,9 @@ function getMeetingSourceAdapter() {
     case 'airtable':
       sourceAdapter = require('./adapters/airtableAdapter');
       break;
+    case 'jotform':
+      sourceAdapter = require('./adapters/jotformAdapter');
+      break;
     default:
       throw new Error(`Unknown meeting source: ${MEETING_SOURCE}`);
   }

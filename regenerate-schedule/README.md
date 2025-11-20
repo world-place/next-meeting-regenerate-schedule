@@ -11,6 +11,13 @@ A Node.js cron job server that generates meeting schedule JSON files from Google
 
 ## ✨ Features
 
+### Pluggable Data Sources
+Import meeting data from whatever system you already have:
+- Google Sheets (default)
+- **New:** Jotform API integration for virtual meeting finders and similar apps
+
+See [docs/DATA_SOURCES.md](./docs/DATA_SOURCES.md) for adapter configuration.
+
 ### Flexible Storage Backends
 Choose the storage that fits your needs:
 - **AWS S3** - Reliable, proven, AWS ecosystem
