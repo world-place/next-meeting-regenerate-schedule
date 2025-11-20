@@ -1,32 +1,33 @@
-# fly.toml app configuration file
+# fly.toml app configuration file generated for nextmeeting-schedule-cron on 2025-11-20T23:52:39+02:00
+#
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "nextmeeting-schedule-cron"
-primary_region = "fra"
+app = 'nextmeeting-schedule-cron'
+primary_region = 'fra'
 
 [build]
+
+[env]
+  CRON_SCHEDULE = '0 * * * *'
+  PORT = '8080'
+  RUN_ON_STARTUP = 'false'
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'off'
   auto_start_machines = false
   min_machines_running = 1
-  
-  [http_service.checks]
-    [http_service.checks.health]
-      grace_period = "10s"
-      interval = "30s"
-      method = "GET"
-      timeout = "5s"
-      path = "/health"
 
-[env]
-  PORT = "8080"
-  CRON_SCHEDULE = "0 * * * *"  # Every hour
-  RUN_ON_STARTUP = "false"
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/health'
 
 [[vm]]
-  cpu_kind = "shared"
+  cpu_kind = 'shared'
   cpus = 1
   memory_mb = 256
