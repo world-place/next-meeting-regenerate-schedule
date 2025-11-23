@@ -44,15 +44,34 @@ async function downloadSheet(sheetId) {
  * Authenticate and get Google Sheets document
  */
 async function getGoogleSheetsDoc(docId) {
-  const doc = new GoogleSpreadsheet(docId);
+  // Temporarily unset proxy env vars to avoid proxy issues
+  const originalHttpProxy = process.env.HTTP_PROXY;
+  const originalHttpsProxy = process.env.HTTPS_PROXY;
+  const originalHttpProxyLower = process.env.http_proxy;
+  const originalHttpsProxyLower = process.env.https_proxy;
   
-  await doc.useServiceAccountAuth({
-    client_email: process.env.GOOGLE_API_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_API_PRIVATE_KEY.replace(/\\n/g, "\n")
-  });
+  delete process.env.HTTP_PROXY;
+  delete process.env.HTTPS_PROXY;
+  delete process.env.http_proxy;
+  delete process.env.https_proxy;
+  
+  try {
+    const doc = new GoogleSpreadsheet(docId);
+    
+    await doc.useServiceAccountAuth({
+      client_email: process.env.GOOGLE_API_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_API_PRIVATE_KEY.replace(/\\n/g, "\n")
+    });
 
-  await doc.loadInfo();
-  return doc;
+    await doc.loadInfo();
+    return doc;
+  } finally {
+    // Restore proxy settings
+    if (originalHttpProxy) process.env.HTTP_PROXY = originalHttpProxy;
+    if (originalHttpsProxy) process.env.HTTPS_PROXY = originalHttpsProxy;
+    if (originalHttpProxyLower) process.env.http_proxy = originalHttpProxyLower;
+    if (originalHttpsProxyLower) process.env.https_proxy = originalHttpsProxyLower;
+  }
 }
 
 /**

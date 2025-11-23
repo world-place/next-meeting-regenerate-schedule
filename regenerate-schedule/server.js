@@ -81,30 +81,10 @@ if (STORAGE_BACKEND === 'aws-s3') {
 // Meeting configurations
 const configs = [ 
   {
-    name: "S-Anon",
-    googleSheetId: '1UJneS5GKFQSIy_iAfkLE21nRC_E8VzJ8diTT4Z3JnrA',
-    siteUUID: 'B0E7F18B-4CF5-49FF-BBD3-75E1CA52AA5E'
+    name: "SA Virtual Meeting Finder (Alpha)",
+    googleSheetId: '1VL60c6yxyiEGIjzIgI4LVDuedDBMt6mFKD1gmMkIwNs',
+    siteUUID: 'B4E7C2F1-8A3D-4F5E-9B1C-6D2A4E8F3B7C'
   },
-  {
-    name: 'SA',
-    googleSheetId: '1_QxT6VIm1HTLKSl71DtDqSMWVZYrdbqSl0WSF0Ch6g4',
-    siteUUID: '275EE30A-220F-4FF2-A950-0ED2B5E4C257'
-  },
-  {
-    name: 'ACA',
-    googleSheetId: '1EyR9SJSbEn0rIKtb10hYTQQCBHdJ42pBKFE6ezQeY8A',
-    siteUUID: '0BF67B1D-444F-45F5-BA5B-E3ADD7E4C30B'
-  },
-  {
-    name: 'DA',
-    googleSheetId: '18gkS_5ghZGW0smYwV0OHYZL4yph-r02wIcVXujEF8HQ',
-    siteUUID: 'A93E4DF2-F779-4F15-B25B-826D8A3B8009-DA'
-  },
-  {
-    name: 'AAA',
-    googleSheetId: '1RkJpxqJCHeQZjr0yYt6QMheujiynsCwY9M7G3BeV55E',
-    siteUUID: '5205ac4c-ec58-4f11-8c90-2be7fcd4d6f5-AAA'
-  }
 ];
 
 // The main job function (extracted from the Lambda handler)
